@@ -5,7 +5,7 @@ import sys
 from importlib.metadata import metadata
 from io import TextIOWrapper
 from types import TracebackType
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple, Type, Union
 
 # Optional rich feature
 try:
@@ -28,20 +28,20 @@ def help_text(text: str):
 
 
 def _no_traceback_excepthook(
-    exctype: type[BaseException],
+    exctype: Type[BaseException],
     value: BaseException,
-    traceback: TracebackType | None,
+    traceback: Optional[TracebackType],
     /,
 ):
     pass
 
 
-def cwd_callback(ctx: Context, param: Option | Parameter, value: str):
+def cwd_callback(ctx: Context, param: Union[Option, Parameter], value: str):
     return os.path.abspath(value) if value else None
 
 
 def env_callback(
-    ctx: Context, param: Option | Parameter, values: Tuple[Tuple[str, str]]
+    ctx: Context, param: Union[Option, Parameter], values: Tuple[Tuple[str, str]]
 ):
     env = {}
     for value in values:
@@ -51,7 +51,7 @@ def env_callback(
 
 
 def env_file_callback(
-    ctx: Context, param: Option | Parameter, values: Tuple[TextIOWrapper]
+    ctx: Context, param: Union[Option, Parameter], values: Tuple[TextIOWrapper]
 ):
     env_from_file = {}
 
@@ -110,8 +110,8 @@ def execenv(
     command: Tuple[str],
     env: Dict[str, str],
     keep: bool,
-    cwd: str | None,
-    verbose: int | None,
+    cwd: Optional[str],
+    verbose: Optional[int],
     env_file: Dict[str, str],
 ):
     """
