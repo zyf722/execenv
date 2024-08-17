@@ -26,6 +26,7 @@ except ImportError:
     help_config = None  # type: ignore
 
 
+from auto_click_auto import enable_click_shell_completion
 from click import Context, Option, Parameter
 
 from execenv import dotenv
@@ -121,6 +122,8 @@ def execenv(
     """
     Run a certain command with environment variables set.
     """
+    enable_click_shell_completion(__name__)
+
     try:
         verbose_info = VerboseInfo(locals().copy(), verbose)
 

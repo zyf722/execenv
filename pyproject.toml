@@ -24,6 +24,7 @@ classifiers = [
 python = "^3.8"
 click = "^8.1.7"
 rich-click = { version = "^1.8.3", optional = true }
+auto-click-auto = "^0.1.5"
 
 [tool.poetry.group.dev.dependencies]
 types-click = "^7.1.8"
