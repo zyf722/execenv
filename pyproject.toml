@@ -34,6 +34,7 @@ rich = ["rich-click"]
 
 [tool.poetry.scripts]
 execenv = "execenv:execenv"
+"execenv-completion" = "execenv:execenv_completion"
 
 
 [build-system]

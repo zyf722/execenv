@@ -3,8 +3,10 @@ import subprocess
 import sys
 from importlib.metadata import metadata
 from io import TextIOWrapper
+from pathlib import Path
+from textwrap import dedent, indent
 from types import TracebackType
-from typing import Callable, Dict, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union, cast
 
 # Optional rich feature
 try:
@@ -144,6 +146,111 @@ def execenv(
         if sys.excepthook is sys.__excepthook__:
             sys.excepthook = _no_traceback_excepthook
         raise
+
+
+def clink_completion(command: click.Command, completions_path: Path):
+    flags: List[str] = []
+    descriptions: List[str] = []
+
+    for param in command.params:
+        if not isinstance(param, Option):
+            continue
+
+        opts = tuple(map(lambda opt: f"'{opt}'", param.opts))
+        flags += opts
+        if param.help:
+            for opt in opts:
+                descriptions.append(f"[{opt}] = '{param.help}'")
+
+    flags_str = ", ".join(flags)
+    description_str = ",\n".join(descriptions)
+    description_str_indented = indent(
+        description_str,
+        " " * 12,
+        lambda line: not description_str.startswith(line),
+    )
+
+    script = dedent(f"""\
+        local matcher = clink.argmatcher('{command.name}')
+        matcher:addflags({flags_str})
+
+        local function adddescriptions_helper(matcher, ...)
+            if matcher and matcher.adddescriptions then
+                matcher:adddescriptions(...)
+            end
+        end
+
+        adddescriptions_helper(matcher, {{
+            {description_str_indented}
+        }})
+    """)
+
+    file_path = completions_path / f"{command.name}.lua"
+
+    if file_path.exists():
+        click.confirm(
+            f"File {f'{command.name}.lua'} already exists. Overwrite?",
+            abort=True,
+            default=False,
+            prompt_suffix=" ",
+        )
+        click.echo()
+
+    with open(file_path, "w") as f:
+        f.write(script)
+
+    click.echo(
+        f"Completion script saved to {click.style(str(file_path), fg='yellow', bold=True)}."
+    )
+
+
+@click.command(
+    help="Command to manually setup tab completion for execenv.", no_args_is_help=True
+)
+@click.option(
+    "-s",
+    "--shell",
+    type=click.Choice(["clink"]),
+    required=True,
+    help="Shell to setup tab completion.",
+)
+@click.option(
+    "-p",
+    "--path",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),  # type: ignore
+    default=Path.cwd(),
+    help="Path where the completion script will be saved. Current directory by default.",
+)
+@click.version_option(
+    None, "--version", "-V", prog_name=__name__, message="%(prog)s v%(version)s"
+)
+@click.help_option("-h", "--help")
+@rich_config(help_config)
+def execenv_completion(shell: str, path: Path):
+    enable_click_shell_completion(execenv_completion.name)
+
+    if shell == "clink":
+        completions_path = path / "completions"
+        if not completions_path.exists():
+            click.confirm(
+                f"Directory does not exist.\nWill create at {click.style(str(completions_path), fg='yellow', bold=True)}.\nContinue?",
+                default=True,
+                abort=True,
+                prompt_suffix=" ",
+            )
+            click.echo()
+            completions_path.mkdir()
+
+        clink_completion(execenv, completions_path)
+        clink_completion(execenv_echo, completions_path)
+        clink_completion(execenv_completion, completions_path)
+
+        click.echo("\nRun following to install auto-completion:")
+        click.secho(f'\nclink installscripts "{path}"\n', fg="yellow", bold=True)
+        click.echo("Restart your shell to load the completion script.")
+    else:
+        raise click.BadParameter("Shell is not supported.")
+
 
 
 if __name__ == "__main__":
