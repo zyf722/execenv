@@ -145,7 +145,7 @@ execenv --append-separator . -a KEY test -e KEY VAL -- execenv-echo KEY
 
 ### Shell Related
 #### `-s` / `--shell`
-Use `-s` / `--shell` to set `shell=True` to `subprocess` in order to use expansion, built-in commands and other shell features:
+Use `-s` / `--shell` to set `shell=True` to `subprocess` in order to use expansion, built-in commands, pipes, redirection and other shell features:
 
 ```shell
 # Linux / macOS
@@ -159,7 +159,7 @@ execenv -e PATH overwritten -e KEY VAL -s -- echo EXECENV_PATH %KEY%
 ```
 
 > [!TIP]
-> You should escape `$` on Linux / macOS and `%` on Windows to prevent them from being expanded by the shell if you want to use new values set with `execenv`.
+> You should escape `$` on Linux / macOS using `\` and `%` on Windows using `^` to prevent them from being expanded by the shell if you want to use new values set with `execenv`.
 >
 > Alternatively, you can use a prefix to access them. By default, `EXECENV_` is used as the prefix. You can change it by using `--env-varref-prefix` flag.
 
