@@ -236,7 +236,7 @@ A completion utility `execenv-completion` will also be installed with `execenv`.
 You can install it by running:
 
 ```shell
-execenv-complete -s clink [-p /path/to/your/script]
+execenv-completion -s clink [-p /path/to/your/script]
 ```
 
 It will create a `completions` directory in the specified path (or the current directory if not provided) with the completion `.lua` script inside.
