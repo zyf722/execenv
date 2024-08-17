@@ -10,7 +10,7 @@ from io import TextIOWrapper
 from pathlib import Path
 from textwrap import dedent, indent
 from types import TracebackType
-from typing import Callable, Dict, List, Optional, Tuple, Type, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
 
 # Optional rich feature
 try:
@@ -37,6 +37,7 @@ from click import Context, Option, Parameter
 
 from execenv import dotenv
 from execenv.config import DEFAULT_CONFIG
+from execenv.utils import add_flags_callback, add_help_callback
 from execenv.verbose import VerboseInfo
 
 
@@ -47,6 +48,14 @@ def _no_traceback_excepthook(
     /,
 ):
     pass
+
+
+def completion_callback(
+    ctx: Context,
+    param: Union[Option, Parameter] = None,  # type: ignore
+    value: Any = None,  # type: ignore
+):
+    enable_click_shell_completion(ctx.command.name)
 
 
 def config_callback(ctx: Context, param: Union[Option, Parameter], value: Path):
@@ -125,6 +134,8 @@ def convert_env_varref(prefix: str, value: str) -> str:
     return re.sub(pattern, replacement_format, value)
 
 
+@add_help_callback(completion_callback)
+@add_flags_callback("--version", "-v", callback=completion_callback)
 @click.command(help=metadata(__package__)["Summary"], no_args_is_help=True)
 @click.argument("command", type=str, nargs=-1, required=True)
 @click.option(
@@ -322,6 +333,8 @@ def clink_completion(command: click.Command, completions_path: Path):
     )
 
 
+@add_help_callback(completion_callback)
+@add_flags_callback("--version", "-v", callback=completion_callback)
 @click.command(
     help="Command to manually setup tab completion for execenv.", no_args_is_help=True
 )
@@ -370,6 +383,8 @@ def execenv_completion(shell: str, path: Path):
         raise click.BadParameter("Shell is not supported.")
 
 
+@add_help_callback(completion_callback)
+@add_flags_callback("--version", "-v", callback=completion_callback)
 @click.command(
     help="Test command to show value of given environment variables.",
     no_args_is_help=True,
