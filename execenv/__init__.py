@@ -1,30 +1,35 @@
 import os
-import re
 import subprocess
 import sys
 from importlib.metadata import metadata
 from io import TextIOWrapper
 from types import TracebackType
-from typing import Dict, Optional, Tuple, Type, Union
+from typing import Callable, Dict, Optional, Tuple, Type, Union
 
 # Optional rich feature
 try:
     import rich_click as click  # type: ignore
+    from rich.highlighter import ReprHighlighter
+    from rich_click import rich_config
 
-    click.rich_click.TEXT_MARKUP = "rich"
+    help_config = click.RichHelpConfiguration(highlighter=ReprHighlighter())
+
 except ImportError:
     import click  # type: ignore
+
+    def rich_config(help_config: None):  # type: ignore
+        def decorator(f: Callable) -> Callable:
+            return f
+
+        return decorator
+
+    help_config = None  # type: ignore
+
 
 from click import Context, Option, Parameter
 
 from execenv import dotenv
 from execenv.verbose import VerboseInfo
-
-
-def help_text(text: str):
-    if hasattr(click, "rich_click"):
-        return text
-    return re.sub(r"\[([^\]]*)\]", "", text)
 
 
 def _no_traceback_excepthook(
@@ -69,15 +74,13 @@ def env_file_callback(
 @click.option(
     "--keep/--no-keep",
     default=True,
-    help=help_text(
-        "Whether to keep the current environment. [italic blue]True[/] by default."
-    ),
+    help="Whether to keep the current environment. True by default.",
 )
 @click.option(
     "-v",
     "--verbose",
     count=True,
-    help=help_text("Run with verbose mode. Log out necessary info."),
+    help="Run with verbose mode. Log out necessary info.",
 )
 @click.option(
     "-e",
@@ -85,7 +88,7 @@ def env_file_callback(
     multiple=True,
     type=(str, str),
     callback=env_callback,
-    help=help_text('Environment variable pair in the format of [gold3]"NAME val"[/].'),
+    help='Environment variable pair in the format of "NAME val".',
 )
 @click.option(
     "-f",
@@ -93,19 +96,20 @@ def env_file_callback(
     multiple=True,
     type=click.File("r"),
     callback=env_file_callback,
-    help=help_text(".env file with environment variable pairs."),
+    help=".env file with environment variable pairs.",
 )
 @click.option(
     "-c",
     "--cwd",
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     callback=cwd_callback,
-    help=help_text("Current working directory."),
+    help="Current working directory.",
 )
 @click.version_option(
     None, "--version", "-V", prog_name=__name__, message="%(prog)s v%(version)s"
 )
 @click.help_option("-h", "--help")
+@rich_config(help_config)
 def execenv(
     command: Tuple[str],
     env: Dict[str, str],
