@@ -375,6 +375,9 @@ def execenv_completion(shell: str, path: Path):
     no_args_is_help=True,
 )
 @click.argument("env", type=str, nargs=-1, required=True)
+@click.version_option(
+    None, "--version", "-V", prog_name=__name__, message="%(prog)s v%(version)s"
+)
 @click.help_option("-h", "--help")
 @rich_config(help_config)
 def execenv_echo(env: Tuple[str, ...]):
