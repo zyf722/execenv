@@ -2,7 +2,11 @@ name: Poetry Build
 
 on:
   push:
+    paths:
+      - "execenv/**"
   pull_request:
+    paths:
+      - "execenv/**"
   workflow_dispatch:
 
 jobs:
