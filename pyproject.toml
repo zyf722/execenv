@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "execenv"
 version = "0.1.0"
-description = "Run a certain command with environment variables set."
+description = "Run command with a certain environment."
 license = "MIT"
 authors = ["MaxMixAlex <MaxMixAlex@protonmail.com>"]
 readme = "README.md"
@@ -35,6 +35,7 @@ rich = ["rich-click"]
 [tool.poetry.scripts]
 execenv = "execenv:execenv"
 "execenv-completion" = "execenv:execenv_completion"
+"execenv-echo" = "execenv:execenv_echo"
 
 
 [build-system]

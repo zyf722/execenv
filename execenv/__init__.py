@@ -1,6 +1,10 @@
 import os
+import platform
+import re
+import shlex
 import subprocess
 import sys
+from functools import partial
 from importlib.metadata import metadata
 from io import TextIOWrapper
 from pathlib import Path
@@ -32,6 +36,7 @@ from auto_click_auto import enable_click_shell_completion
 from click import Context, Option, Parameter
 
 from execenv import dotenv
+from execenv.config import DEFAULT_CONFIG
 from execenv.verbose import VerboseInfo
 
 
@@ -42,6 +47,22 @@ def _no_traceback_excepthook(
     /,
 ):
     pass
+
+
+def config_callback(ctx: Context, param: Union[Option, Parameter], value: Path):
+    config = DEFAULT_CONFIG.copy()
+
+    # Load config file
+    if value.exists():
+        try:
+            config.update(dotenv.parse(value.read_text()))
+        except Exception as e:
+            click.secho(f"Warning: Failed to load .execenv.env ({e})", fg="yellow")
+            pass
+    else:
+        value.write_text("\n".join(f"{k}={v}" for k, v in config.items()))
+
+    ctx.default_map = config
 
 
 def cwd_callback(ctx: Context, param: Union[Option, Parameter], value: str):
@@ -55,6 +76,25 @@ def env_callback(
     for value in values:
         var_name, var_val = value
         env[var_name] = var_val
+    return env
+
+
+def append_to_env(env: Dict[str, str], key: str, value: str, separator: str):
+    if key in env:
+        env[key] += separator + value
+    else:
+        env[key] = value
+
+
+def append_env_callback(
+    ctx: Context, param: Union[Option, Parameter], values: Tuple[Tuple[str, str]]
+):
+    env: Dict[str, str] = {}
+    for value in values:
+        var_name, var_val = value
+        append_to_env(
+            env, var_name, var_val, cast(str, ctx.params.get("append_separator"))
+        )
     return env
 
 
@@ -72,18 +112,54 @@ def env_file_callback(
     return env_from_file
 
 
-@click.command(help=metadata(__package__)["Summary"])
+def convert_env_varref(prefix: str, value: str) -> str:
+    pattern = rf"\b{prefix}([A-Za-z][A-Za-z0-9]*)\b"
+
+    if platform.system() in ["Linux", "Darwin"]:  # Darwin is the system name for macOS
+        replacement_format = r"$\1"
+    elif platform.system() == "Windows":
+        replacement_format = r"%\1%"
+    else:
+        raise NotImplementedError(f"Unsupported platform: {platform.system()}")
+
+    return re.sub(pattern, replacement_format, value)
+
+
+@click.command(help=metadata(__package__)["Summary"], no_args_is_help=True)
 @click.argument("command", type=str, nargs=-1, required=True)
 @click.option(
-    "--keep/--no-keep",
-    default=True,
-    help="Whether to keep the current environment. True by default.",
+    "--config",
+    type=click.Path(dir_okay=False, path_type=Path),  # type: ignore
+    default=Path.home() / ".execenv.env",
+    callback=config_callback,
+    is_eager=True,
+    expose_value=False,
+    help='.env config file for execenv. "~/.execenv.env" by default.',
 )
 @click.option(
-    "-v",
-    "--verbose",
-    count=True,
-    help="Run with verbose mode. Log out necessary info.",
+    "-c",
+    "--clear",
+    is_flag=True,
+    default=False,
+    help="Clear the current environment. False by default.",
+)
+@click.option(
+    "-s",
+    "--shell",
+    is_flag=True,
+    default=False,
+    help="Use shell to run the command. False by default.",
+)
+@click.option(
+    "--shell-strict",
+    is_flag=True,
+    default=False,
+    help='Use "shlex.join" to get better shell compatibility and security. False by default.',
+)
+@click.option(
+    "--env-varref-prefix",
+    type=str,
+    help='Prefix for environment variable references. "EXECENV_" by default.',
 )
 @click.option(
     "-e",
@@ -91,22 +167,41 @@ def env_file_callback(
     multiple=True,
     type=(str, str),
     callback=env_callback,
-    help='Environment variable pair in the format of "NAME val".',
+    help='Set environment variable to given value. Should be in the format of "NAME val".',
+)
+@click.option(
+    "-a",
+    "--append-env",
+    multiple=True,
+    type=(str, str),
+    callback=append_env_callback,
+    help='Append given value to environment variable rather than replacing it. If not present, it will be set. Might be useful for PATH-like variables. Should be in the format of "NAME val".',
+)
+@click.option(
+    "--append-separator",
+    type=str,
+    help='Separator to use when appending to environment variable. Only valid with "-a" / "--append-env". "os.pathsep" by default, which is platform-dependent.',
 )
 @click.option(
     "-f",
-    "--env-file",
+    "--file",
     multiple=True,
     type=click.File("r"),
     callback=env_file_callback,
     help=".env file with environment variable pairs.",
 )
 @click.option(
-    "-c",
+    "-C",
     "--cwd",
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     callback=cwd_callback,
     help="Current working directory.",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="Run with verbose mode. Log out necessary info.",
 )
 @click.version_option(
     None, "--version", "-V", prog_name=__name__, message="%(prog)s v%(version)s"
@@ -114,32 +209,55 @@ def env_file_callback(
 @click.help_option("-h", "--help")
 @rich_config(help_config)
 def execenv(
-    command: Tuple[str],
+    command: Tuple[str, ...],
     env: Dict[str, str],
-    keep: bool,
+    append_env: Dict[str, str],
+    append_separator: str,
+    env_varref_prefix: str,
+    clear: bool,
     cwd: Optional[str],
     verbose: Optional[int],
-    env_file: Dict[str, str],
+    file: Dict[str, str],
+    shell: bool,
+    shell_strict: bool,
 ):
-    """
-    Run a certain command with environment variables set.
-    """
-    enable_click_shell_completion(__name__)
+    enable_click_shell_completion(execenv.name)
 
     try:
-        verbose_info = VerboseInfo(locals().copy(), verbose)
+        # Convert env references to platform-dependent format
+        command = tuple(map(partial(convert_env_varref, env_varref_prefix), command))
+
+        # Verbose info
+        verbose_info = VerboseInfo(locals(), verbose)
 
         # Construct merged environment
-        env_merged = {}
-        env_merged.update(env_file)
-        env_merged.update(env)
-        if keep:
+        env_merged: Dict[str, str] = {}
+        if not clear:
             env_merged.update(os.environ)
+        env_merged.update(file)
+        env_merged.update(env)
+        for key, value in append_env.items():
+            append_to_env(env_merged, key, value, append_separator)
         verbose_info.add("env_merged", env_merged, 2)
+
+        # Actual command running
+        command_str: str = (
+            subprocess.list2cmdline(command)
+            if not shell_strict
+            else shlex.join(command)
+        )
+        verbose_info.add("actual_command", command_str, 1)
 
         verbose_info.show()
 
-        exit(subprocess.run(command, env=env_merged, cwd=cwd, shell=True).returncode)
+        exit(
+            subprocess.run(
+                command_str if shell else command,
+                env=env_merged,
+                cwd=cwd,
+                shell=shell,
+            ).returncode
+        )
 
     except KeyboardInterrupt:
         # Prevent default traceback
@@ -252,6 +370,19 @@ def execenv_completion(shell: str, path: Path):
         raise click.BadParameter("Shell is not supported.")
 
 
+@click.command(
+    help="Test command to show value of given environment variables.",
+    no_args_is_help=True,
+)
+@click.argument("env", type=str, nargs=-1, required=True)
+@click.help_option("-h", "--help")
+@rich_config(help_config)
+def execenv_echo(env: Tuple[str, ...]):
+    enable_click_shell_completion(execenv_echo.name)
+    for e in env:
+        click.echo(f"{e}=" + os.getenv(e, click.style("NOT FOUND", fg="red")))
+
 
 if __name__ == "__main__":
+    execenv()
     execenv()
