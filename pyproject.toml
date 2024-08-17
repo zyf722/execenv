@@ -2,11 +2,26 @@
 name = "execenv"
 version = "0.1.0"
 description = "Run a certain command with environment variables set."
+license = "MIT"
 authors = ["MaxMixAlex <MaxMixAlex@protonmail.com>"]
 readme = "README.md"
+repository = "https://github.com/zyf722/execenv"
+keywords = ["cli", "commandline", "env", "environment", "environment variables"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development",
+    "Topic :: System",
+    "Topic :: Terminals",
+    "Typing :: Typed",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python"
+]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.8"
 click = "^8.1.7"
 rich-click = { version = "^1.8.3", optional = true }
 
