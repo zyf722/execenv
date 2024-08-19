@@ -75,7 +75,7 @@ To run command with specific environment variables, you can pass them directly u
 execenv -e SHELL overwritten -e KEY VAL -- execenv-echo SHELL KEY
 
 # Or put command before options
-execenv execenv-echo SHELL KEY -e SHELL overwritten KEY VAL
+execenv execenv-echo SHELL KEY -e SHELL overwritten -e KEY VAL
 
 # Output
 # SHELL=overwritten
@@ -166,7 +166,7 @@ execenv -e PATH overwritten -e KEY VAL -s -- echo EXECENV_PATH %KEY%
 > [!WARNING]
 > You should be cautious when using `shell=True` as it might lead to [security vulnerabilities](https://docs.python.org/3/library/subprocess.html#security-considerations). Make sure you trust the input and the command you are running.
 >
-> In POSIX platforms, due to features like expansion can not work with `shlex.join` as they are escaped for security reasons, internally `subprocess.list2cmdline` is used by default, which is less secure and compatible with POSIX. You can change it by using `--shell-strict` flag to switch back to `shlex.join`.
+> On POSIX platforms, due to features like expansion can not work with `shlex.join` as they are escaped for security reasons, internally `subprocess.list2cmdline` is used by default, which is less secure and compatible with POSIX. You can change it by using `--shell-strict` flag to switch back to `shlex.join`.
 
 #### `-C` / `--cwd`
 Use `-C` / `--cwd` to set the working directory, and note that `-s` / `--shell` is not mandatory to use this option:
