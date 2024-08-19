@@ -209,9 +209,9 @@ execenv -e SHELL overwritten -e KEY VAL -v -- execenv-echo SHELL KEY
 A header section will be added to the output to show details about `execenv` itself. Use `-vv` to show more information.
 
 #### `--config`
-Use `--config` to load configuration from a file.
+Use `--config` to load configuration from a file. Note that config file itself is [a valid `.env` file](#-f----file).
 
-Note that config file itself is [a valid `.env` file](#-f----file). Default config file will be created after the first run.
+Default config file will be created after the first run at `~/.execenv.env` on Linux / macOS and `%USERPROFILE%\.execenv.env` on Windows.
 
 Refer to [`execenv/config.py`](./execenv/config.py) to see all available configuration with their default values.
 
