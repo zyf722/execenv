@@ -135,7 +135,7 @@ def convert_env_varref(prefix: str, value: str) -> str:
 
 
 @add_help_callback(completion_callback)
-@add_flags_callback("--version", "-v", callback=completion_callback)
+@add_flags_callback("--version", callback=completion_callback)
 @click.command(help=metadata(__package__)["Summary"], no_args_is_help=True)
 @click.argument("command", type=str, nargs=-1, required=True)
 @click.option(
@@ -334,7 +334,7 @@ def clink_completion(command: click.Command, completions_path: Path):
 
 
 @add_help_callback(completion_callback)
-@add_flags_callback("--version", "-v", callback=completion_callback)
+@add_flags_callback("--version", callback=completion_callback)
 @click.command(
     help="Command to manually setup tab completion for execenv.", no_args_is_help=True
 )
@@ -384,7 +384,7 @@ def execenv_completion(shell: str, path: Path):
 
 
 @add_help_callback(completion_callback)
-@add_flags_callback("--version", "-v", callback=completion_callback)
+@add_flags_callback("--version", callback=completion_callback)
 @click.command(
     help="Test command to show value of given environment variables.",
     no_args_is_help=True,
