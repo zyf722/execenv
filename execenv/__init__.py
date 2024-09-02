@@ -403,4 +403,3 @@ def execenv_echo(env: Tuple[str, ...]):
 
 if __name__ == "__main__":
     execenv()
-    execenv()
