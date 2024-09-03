@@ -116,8 +116,8 @@ execenv -c -- set
 > 
 > For those on the same level, the order of appearance in the command line will be followed.
 
-#### `-a` / `--append` & `--append-separator`
-Use `-a` / `--append` to append value to variables instead of overwriting:
+#### `-a` / `--append-env` & `--append-separator`
+Use `-a` / `--append-env` to append value to variables instead of overwriting:
 
 ```shell
 execenv -e KEY VAL -a KEY test -- execenv-echo KEY
