@@ -45,7 +45,12 @@ class VerboseInfo:
 
                 console.print(Rule(characters="="))
             else:
-                width, _ = os.get_terminal_size()
+                try:
+                    width, _ = os.get_terminal_size()
+                except OSError:
+                    # Might get `Inappropriate ioctl for device` on GitHub Actions
+                    width = 80
+
                 width_with_title = (width - 2 - len(__package__)) // 2
                 rule_line = "=" * width_with_title
 
