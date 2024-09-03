@@ -143,6 +143,9 @@ execenv --append-separator . -a KEY test -e KEY VAL -- execenv-echo KEY
 # KEY=VAL.test
 ```
 
+> [!WARNING]
+> Be cautious when setting the separator to special characters like `|` with `-s` / `--shell` flag, as they might be misinterpreted by the shell, or even lead to security vulnerabilities.
+
 ### Shell Related
 #### `-s` / `--shell`
 Use `-s` / `--shell` to set `shell=True` to `subprocess` in order to use expansion, built-in commands, pipes, redirection and other shell features:
