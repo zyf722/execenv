@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from functools import partial
+from traceback import format_exception
 from typing import IO, Any, Callable, List, Mapping, Optional, Union
 
 import pytest
@@ -17,10 +18,14 @@ class CliTestResult:
 
     def should_pass(self, no_stderr: bool = True, no_exception: bool = True):
         if no_stderr:
-            assert self.result.stderr == ""
+            assert self.result.stderr == "", "STDERR: " + self.result.stderr
         if no_exception:
-            assert self.result.exception is None
-        assert self.result.exit_code == 0
+            assert self.result.exception is None, "".join(
+                format_exception(
+                    None, self.result.exception, self.result.exception.__traceback__
+                )
+            )
+        assert self.result.exit_code == 0, "Exit code: " + str(self.result.exit_code)
         return self
 
     def should_fail(self, exit_code: int = 1):
