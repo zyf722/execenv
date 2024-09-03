@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "execenv/**"
+      - "tests/**"
   pull_request:
     paths:
       - "execenv/**"
+      - "tests/**"
   workflow_dispatch:
 
 jobs:
