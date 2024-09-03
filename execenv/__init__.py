@@ -242,7 +242,8 @@ def execenv(
     shell_strict: bool,
     test: bool,
 ):
-    enable_click_shell_completion(execenv.name)
+    if not test:
+        enable_click_shell_completion(execenv.name)
 
     try:
         # Convert env references to platform-dependent format
