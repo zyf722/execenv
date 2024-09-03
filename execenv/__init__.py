@@ -121,17 +121,20 @@ def env_file_callback(
     return env_from_file
 
 
-def convert_env_varref(prefix: str, value: str) -> str:
-    pattern = rf"\b{prefix}([A-Za-z][A-Za-z0-9]*)\b"
-
-    if platform.system() in ["Linux", "Darwin"]:  # Darwin is the system name for macOS
-        replacement_format = r"$\1"
-    elif platform.system() == "Windows":
-        replacement_format = r"%\1%"
+def get_shell_env_varref_format(var: str, escaped: bool = False) -> str:
+    system = platform.system()
+    if system in ("Linux", "Darwin"):  # Darwin is the system name for macOS
+        varref_format = f"${var}" if not escaped else f"\\${var}"
+    elif system == "Windows":
+        varref_format = f"%{var}%" if not escaped else f"%^{var}%"
     else:
-        raise NotImplementedError(f"Unsupported platform: {platform.system()}")
+        raise NotImplementedError(f"Unsupported platform: {system}")
+    return varref_format
 
-    return re.sub(pattern, replacement_format, value)
+
+def convert_env_varref(prefix: str, value: str) -> str:
+    pattern = rf"\b{prefix}([A-Za-z_][A-Za-z0-9_]*)\b"
+    return re.sub(pattern, get_shell_env_varref_format(r"\1"), value)
 
 
 @add_help_callback(completion_callback)
