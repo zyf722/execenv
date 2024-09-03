@@ -36,9 +36,14 @@ jobs:
       - name: Set Poetry environment
         run: poetry env use '${{ steps.python.outputs.python-path }}'
         
-
       - name: Install dependencies
         run: poetry install
+
+      - name: Check for typos
+        uses: crate-ci/typos@master
+
+      - name: Run tests
+        run: poetry run pytest -vvv
 
       - name: Build package
         run: poetry build
