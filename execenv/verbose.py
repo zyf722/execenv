@@ -1,6 +1,8 @@
 import os
 from typing import Any, Dict, Optional, TypedDict
 
+import click
+
 try:
     from rich.console import Console
     from rich.pretty import pretty_repr
@@ -47,8 +49,8 @@ class VerboseInfo:
                 width_with_title = (width - 2 - len(__package__)) // 2
                 rule_line = "=" * width_with_title
 
-                print(f"{rule_line} {__package__} {rule_line}")
+                click.echo(f"{rule_line} {__package__} {rule_line}")
                 for key, value in self.data.items():
                     if self.level >= value["level"]:
-                        print(f"{key}: {value['data']}")
-                print("=" * width)
+                        click.echo(f"{key}: {value['data']}")
+                click.echo("=" * width)
