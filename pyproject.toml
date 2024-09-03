@@ -29,6 +29,10 @@ auto-click-auto = "^0.1.5"
 [tool.poetry.group.dev.dependencies]
 types-click = "^7.1.8"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.2"
+pytest-sugar = "^1.0.0"
+
 [tool.poetry.extras]
 rich = ["rich-click"]
 

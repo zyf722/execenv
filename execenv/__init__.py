@@ -171,6 +171,12 @@ def convert_env_varref(prefix: str, value: str) -> str:
     help='Use "shlex.join" to get better shell compatibility and security. False by default.',
 )
 @click.option(
+    "--test",
+    is_flag=True,
+    default=False,
+    help="Test mode. Capture output and write to stdout. False by default.",
+)
+@click.option(
     "--env-varref-prefix",
     type=str,
     help='Prefix for environment variable references. "EXECENV_" by default.',
@@ -234,6 +240,7 @@ def execenv(
     file: Dict[str, str],
     shell: bool,
     shell_strict: bool,
+    test: bool,
 ):
     enable_click_shell_completion(execenv.name)
 
@@ -264,14 +271,19 @@ def execenv(
 
         verbose_info.show()
 
-        exit(
-            subprocess.run(
-                command_str if shell else command,
-                env=env_merged,
-                cwd=cwd,
-                shell=shell,
-            ).returncode
+        result = subprocess.run(
+            command_str if shell else command,
+            env=env_merged,
+            cwd=cwd,
+            shell=shell,
+            capture_output=test,
+            text=test,
         )
+        if test:
+            sys.stdout.write(result.stdout)
+            sys.stderr.write(result.stderr)
+
+        exit(result.returncode)
 
     except KeyboardInterrupt:
         # Prevent default traceback
