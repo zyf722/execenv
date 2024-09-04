@@ -22,8 +22,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install code quality tools
+        run: pipx install ruff isort mypy
+
       - name: Check for typos
         uses: crate-ci/typos@master
+
+      - name: Lint code and check code formatting using ruff
+        run: |
+          ruff check --output-format=github .
+          ruff format --check .
+
+      - name: Type-check code using mypy
+        run: mypy --check-untyped-defs .
+
+      - name: Check import order using isort
+        run: isort -c --profile black .
 
   build:
     strategy:

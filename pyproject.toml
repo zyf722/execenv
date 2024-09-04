@@ -42,6 +42,8 @@ execenv = "execenv:execenv"
 "execenv-completion" = "execenv:execenv_completion"
 "execenv-echo" = "execenv:execenv_echo"
 
+[tool.ruff.lint]
+ignore = ["E501"]
 
 [build-system]
 requires = ["poetry-core"]
