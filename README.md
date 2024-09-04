@@ -1,6 +1,8 @@
 [![License](https://img.shields.io/github/license/zyf722/execenv)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/execenv?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/execenv/)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/execenv?logo=python&logoColor=white&label=Python)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/execenv?logo=python&logoColor=white&label=Python)](https://pypi.org/project/execenv/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue?logo=python&logoColor=white)](https://mypy-lang.org/)
 [![Github Actions Build](https://img.shields.io/github/actions/workflow/status/zyf722/execenv/build.yml?logo=github)](https://github.com/zyf722/execenv/actions/workflows/build.yml)
 [![Code Coverage](https://img.shields.io/codecov/c/github/zyf722/execenv?logo=codecov&logoColor=white
 )](https://app.codecov.io/github/zyf722/execenv/)
