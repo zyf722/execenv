@@ -31,6 +31,7 @@ types-click = "^7.1.8"
 ruff = "^0.6.3"
 isort = "^5.13.2"
 mypy = "^1.11.2"
+python-semantic-release = "^9.8.8"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"
@@ -48,6 +49,25 @@ execenv = "execenv:execenv"
 
 [tool.ruff.lint]
 ignore = ["E501"]
+
+[tool.semantic_release]
+version_toml = [
+    "pyproject.toml:tool.poetry.version"
+]
+branch = "main"
+tag_format = "{version}"
+commit_author = "github-actions[bot] <actions@github.com>"
+commit_message = "chore(release): v{version}"
+
+[tool.semantic_release.changelog]
+keep_trailing_newline = true
+
+[tool.semantic_release.remote]
+type = "github"
+token = { env = "GH_TOKEN" }
+
+[tool.semantic_release.publish]
+upload_to_vcs_release = true
 
 [build-system]
 requires = ["poetry-core"]

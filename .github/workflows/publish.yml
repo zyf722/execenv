@@ -1,16 +1,49 @@
-name: Poetry Publish to PyPI
+name: Publish and Release (Manual)
 
 on:
-  release:
-    types: [published]
+  # Enable execution directly from Actions page
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry Run?'
+        type: boolean
+        required: true
+        default: true
+      bump-version:
+        description: 'Bump Level?'
+        type: choice
+        options:
+          - 'auto'
+          - 'major'
+          - 'minor'
+          - 'patch'
+          - 'prerelease'
+        required: false
+        default: 'auto'
+      as-prerelease:
+        description: 'As pre-release?'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: write
 
 jobs:
   publish:
+    name: Publish and Release (${{ github.event.inputs.dry-run == 'true' && 'Dry Run' || 'Prod' }})
+
     runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history
 
       - name: Install Poetry
         run: |
@@ -30,5 +63,38 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Semantic Release - Versioning
+        run: |
+          FORCE_BUMP=${{ github.event.inputs.bump-version }}
+          if [[ "$FORCE_BUMP" = "auto" ]]; then
+            FORCE_BUMP=""
+          fi
+
+          AS_PRERELEASE=${{ github.event.inputs.as-prerelease }}
+          if [[ "$AS_PRERELEASE" = "true" ]]; then
+            AS_PRERELEASE="--prerelease"
+          else
+            AS_PRERELEASE=""
+          fi
+
+          if [[ "${{ github.event.inputs.dry-run }}" = "true" ]]; then
+            DRY_RUN="-vv --noop"
+          fi
+
+          poetry run semantic-release $DRY_RUN version $FORCE_BUMP $AS_PRERELEASE
+
       - name: Publish to PyPI
-        run: poetry publish --build
+        run: |
+          if [[ "${{ github.event.inputs.dry-run }}" = "true" ]]; then
+            DRY_RUN="--dry-run"
+          fi
+
+          poetry publish --build $DRY_RUN
+
+      - name: Semantic Release - Assets
+        run: |
+          if [[ "${{ github.event.inputs.dry-run }}" = "true" ]]; then
+            DRY_RUN="-vv --noop"
+          fi
+
+          poetry run semantic-release $DRY_RUN publish
