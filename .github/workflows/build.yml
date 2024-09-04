@@ -22,6 +22,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python-version }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,7 +58,15 @@ jobs:
         uses: crate-ci/typos@master
 
       - name: Run tests
-        run: poetry run pytest -vvv
+        run: poetry run pytest -vvv --cov
+
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: execenv
+          verbose: true
+          env_vars: OS,PYTHON
 
       - name: Build package
         run: poetry build
