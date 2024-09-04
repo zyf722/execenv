@@ -2,6 +2,8 @@
 [![PyPI version](https://img.shields.io/pypi/v/execenv?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/execenv/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/execenv?logo=python&logoColor=white&label=Python)
 [![Github Actions Build](https://img.shields.io/github/actions/workflow/status/zyf722/execenv/build.yml?logo=github)](https://github.com/zyf722/execenv/actions/workflows/build.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/zyf722/execenv?logo=codecov&logoColor=white
+)](https://app.codecov.io/github/zyf722/execenv/)
 
 # execenv
 
