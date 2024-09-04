@@ -15,31 +15,46 @@ on:
 
 jobs:
   common-checks:
-    name: Platform-independent common checks
+    name: Platform-independent Common Checks
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install code quality tools
-        run: pipx install ruff isort mypy
-
+      
       - name: Check for typos
         uses: crate-ci/typos@master
 
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.8
+          cache: poetry
+
+      - name: Set Poetry environment
+        run: poetry env use '${{ steps.python.outputs.python-path }}'
+        
+      - name: Install dependencies (including rich)
+        run: poetry install -E rich
+
       - name: Lint code and check code formatting using ruff
         run: |
-          ruff check --output-format=github .
-          ruff format --check .
+          poetry run ruff check --output-format=github .
+          poetry run ruff format --check .
 
       - name: Type-check code using mypy
-        run: mypy --check-untyped-defs .
+        run: poetry run mypy --check-untyped-defs .
 
       - name: Check import order using isort
-        run: isort -c --profile black .
+        run: poetry run isort -c --profile black .
 
   build:
+    name: Test and Build
+
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
