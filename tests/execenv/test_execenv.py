@@ -2,7 +2,7 @@ import os
 import platform
 from pathlib import Path
 
-import pytest
+import pytest  # type: ignore
 
 from execenv import dotenv, execenv, get_shell_env_varref_format
 from tests.conftest import CliTester

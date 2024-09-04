@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import pytest
+import pytest  # type: ignore
 
 from execenv.dotenv import parse
 

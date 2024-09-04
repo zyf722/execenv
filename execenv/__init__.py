@@ -32,7 +32,7 @@ except ImportError:
     help_config = None  # type: ignore
 
 
-from auto_click_auto import enable_click_shell_completion
+from auto_click_auto import enable_click_shell_completion  # type: ignore
 from click import Context, Option, Parameter
 
 from execenv import dotenv

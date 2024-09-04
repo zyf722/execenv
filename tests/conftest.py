@@ -4,7 +4,7 @@ from functools import partial
 from traceback import format_exception
 from typing import IO, Any, Callable, List, Mapping, Optional, Union
 
-import pytest
+import pytest  # type: ignore
 from click import BaseCommand
 from click.testing import CliRunner, Result
 
