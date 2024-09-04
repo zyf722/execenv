@@ -43,11 +43,14 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: "[Windows Only] Install wget for typos"
-        if: matrix.os == 'windows-latest'
-        run: choco install wget
+      # NOTE: Currently don't run typos on Windows until crate-ci/typos#1095 merged
+
+      # - name: "[Windows Only] Install wget for typos"
+      #   if: matrix.os == 'windows-latest'
+      #   run: choco install wget
 
       - name: Check for typos
+        if: matrix.os != 'windows-latest'
         uses: crate-ci/typos@master
 
       - name: Run tests
