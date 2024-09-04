@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from functools import partial
 from traceback import format_exception
@@ -120,3 +121,8 @@ class CliTester:
 @pytest.fixture(scope="module")
 def tester():
     return CliTester()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def test_mode():
+    os.environ["EXECENV_TEST"] = "1"

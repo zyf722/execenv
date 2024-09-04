@@ -41,6 +41,10 @@ from execenv.utils import add_flags_callback, add_help_callback
 from execenv.verbose import VerboseInfo
 
 
+def is_test_mode():
+    return bool(os.getenv("EXECENV_TEST", ""))
+
+
 def _no_traceback_excepthook(
     exctype: Type[BaseException],
     value: BaseException,
@@ -55,7 +59,8 @@ def completion_callback(
     param: Union[Option, Parameter] = None,  # type: ignore
     value: Any = None,  # type: ignore
 ):
-    enable_click_shell_completion(ctx.command.name)
+    if not is_test_mode():
+        enable_click_shell_completion(ctx.command.name)
 
 
 def config_callback(ctx: Context, param: Union[Option, Parameter], value: Path):
@@ -171,12 +176,6 @@ def convert_env_varref(prefix: str, value: str) -> str:
     help='Use "shlex.join" to get better shell compatibility and security. False by default.',
 )
 @click.option(
-    "--test",
-    is_flag=True,
-    default=False,
-    help="Test mode. Capture output and write to stdout. False by default.",
-)
-@click.option(
     "--env-varref-prefix",
     type=str,
     help='Prefix for environment variable references. "EXECENV_" by default.',
@@ -240,9 +239,9 @@ def execenv(
     file: Dict[str, str],
     shell: bool,
     shell_strict: bool,
-    test: bool,
 ):
-    if not test:
+    TEST_MODE = is_test_mode()
+    if not TEST_MODE:
         enable_click_shell_completion(execenv.name)
 
     try:
@@ -277,10 +276,10 @@ def execenv(
             env=env_merged,
             cwd=cwd,
             shell=shell,
-            capture_output=test,
-            text=test,
+            capture_output=TEST_MODE,
+            text=TEST_MODE,
         )
-        if test:
+        if TEST_MODE:
             sys.stdout.write(result.stdout)
             sys.stderr.write(result.stderr)
 
@@ -374,7 +373,8 @@ def clink_completion(command: click.Command, completions_path: Path):
 @click.help_option("-h", "--help")
 @rich_config(help_config)
 def execenv_completion(shell: str, path: Path):
-    enable_click_shell_completion(execenv_completion.name)
+    if not is_test_mode():
+        enable_click_shell_completion(execenv_completion.name)
 
     if shell == "clink":
         completions_path = path / "completions"
@@ -412,7 +412,9 @@ def execenv_completion(shell: str, path: Path):
 @click.help_option("-h", "--help")
 @rich_config(help_config)
 def execenv_echo(env: Tuple[str, ...]):
-    enable_click_shell_completion(execenv_echo.name)
+    if not is_test_mode():
+        enable_click_shell_completion(execenv_echo.name)
+
     for e in env:
         click.echo(f"{e}=" + os.getenv(e, click.style("NOT FOUND", fg="red")))
 

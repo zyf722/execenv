@@ -10,15 +10,10 @@ from tests.conftest import CliTester
 CURRENT_DIR = Path(__file__).parent
 
 
-def init_callback_for_tester(self: CliTester):
-    self._default_init_callback()
-    self.with_option("--test")
-
-
 @pytest.mark.parametrize("option", ["-e", "--env"])
 def test_env_option(tester: CliTester, option: str):
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option(option, "SHELL", "overwritten")
         .with_option(option, "KEY", "VAL")
         .with_end_of_options()
@@ -32,7 +27,7 @@ def test_env_option(tester: CliTester, option: str):
 @pytest.mark.parametrize("option", ["-f", "--file"])
 def test_file_option(tester: CliTester, option: str):
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option(option, (CURRENT_DIR / "file.env").absolute())
         .with_end_of_options()
         .with_arguments("execenv-echo", "KEY")
@@ -55,7 +50,7 @@ def test_clear_option(tester: CliTester, option: str):
     path = os.environ["PATH"]
     os.environ["TEST_VAR"] = "VAL"
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option(option)
         .with_option("-e", "PATH", path)
         .with_end_of_options()
@@ -70,7 +65,7 @@ def test_clear_option(tester: CliTester, option: str):
 def test_append_option(tester: CliTester, option: str):
     TEST_PATH = "execenv-test-path"
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option(option, "PATH", TEST_PATH)
         .with_end_of_options()
         .with_arguments("execenv-echo", "PATH")
@@ -84,7 +79,7 @@ def test_append_separator_option(tester: CliTester):
     TEST_PATH = "execenv-test-path"
     SEPARATOR = ":"
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option("--append-separator", SEPARATOR)
         .with_option("-a", "PATH", TEST_PATH)
         .with_end_of_options()
@@ -98,7 +93,7 @@ def test_append_separator_option(tester: CliTester):
 @pytest.mark.parametrize("option", ["-s", "--shell"])
 def test_shell_option(tester: CliTester, option: str):
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option("-e", "PATH", "overwritten")
         .with_option("-e", "KEY", "VAL")
         .with_option(option)
@@ -114,11 +109,8 @@ def test_shell_option(tester: CliTester, option: str):
 def test_cwd_option(tester: CliTester, option: str):
     target_cwd = CURRENT_DIR / "cwd"
     system = platform.system()
-    (
-        tester.run_command(execenv, init_callback=init_callback_for_tester).with_option(
-            option, target_cwd.absolute()
-        )
-    )
+
+    tester.run_command(execenv).with_option(option, target_cwd.absolute())
 
     if system == "Windows":
         (
@@ -139,7 +131,7 @@ def test_cwd_option(tester: CliTester, option: str):
 @pytest.mark.parametrize("level", list(range(1, 3)))
 def test_verbose_option(tester: CliTester, level: int):
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option("-e", "KEY", "VAL")
         .with_option(f"-{'v' * level}")
         .with_end_of_options()
@@ -158,7 +150,7 @@ def test_config_option(tester: CliTester):
     CONFIG_FILE = CURRENT_DIR / "config.env"
     config = dotenv.parse(CONFIG_FILE.read_text())
     (
-        tester.run_command(execenv, init_callback=init_callback_for_tester)
+        tester.run_command(execenv)
         .with_option("--config", (CURRENT_DIR / "config.env").absolute())
         .with_option("-a", "PATH", TEST_PATH)
         .with_option("-s")
