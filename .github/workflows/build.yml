@@ -14,6 +14,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  common-checks:
+    name: Platform-independent common checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for typos
+        uses: crate-ci/typos@master
+
   build:
     strategy:
       matrix:
@@ -21,6 +32,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
+    needs: common-checks
 
     env:
       OS: ${{ matrix.os }}
@@ -31,8 +43,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Poetry
-        run: |
-          pipx install poetry
+        run: pipx install poetry
 
       - name: Set up Python
         id: python
@@ -46,16 +57,6 @@ jobs:
         
       - name: Install dependencies
         run: poetry install
-
-      # NOTE: Currently don't run typos on Windows until crate-ci/typos#1095 merged
-
-      # - name: "[Windows Only] Install wget for typos"
-      #   if: matrix.os == 'windows-latest'
-      #   run: choco install wget
-
-      - name: Check for typos
-        if: matrix.os != 'windows-latest'
-        uses: crate-ci/typos@master
 
       - name: Run tests
         run: poetry run pytest -vvv --cov=execenv --cov-report=xml:coverage.xml
