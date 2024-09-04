@@ -84,7 +84,7 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        run: poetry run pytest -vvv --cov=execenv --cov-report=xml:coverage.xml
+        run: poetry run pytest -vvv -n auto --cov=execenv --cov-report=xml:coverage.xml
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v4
