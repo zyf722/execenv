@@ -1,4 +1,4 @@
-name: Poetry Build
+name: CI Build
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   common-checks:
-    name: Platform-independent Common Checks
+    name: Code Checks
     runs-on: ubuntu-latest
 
     steps:
