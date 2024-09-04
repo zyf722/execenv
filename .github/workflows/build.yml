@@ -63,10 +63,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: common-checks
 
-    env:
-      OS: ${{ matrix.os }}
-      PYTHON: ${{ matrix.python-version }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -94,10 +90,10 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          name: execenv
+          name: execenv-${{ matrix.os }}-${{ matrix.python-version }}
           verbose: true
           files: ./coverage.xml
-          env_vars: OS,PYTHON
+          flags: ${{ matrix.os }},${{ matrix.python-version }}
 
       - name: Build package
         run: poetry build
