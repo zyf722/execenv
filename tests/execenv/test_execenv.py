@@ -17,7 +17,7 @@ def test_env_option(tester: CliTester, option: str):
         .with_option(option, "SHELL", "overwritten")
         .with_option(option, "KEY", "VAL")
         .with_end_of_options()
-        .with_arguments("poetry", "run", "execenv-echo", "SHELL", "KEY")
+        .with_poetry_run("execenv-echo", "SHELL", "KEY")
         .execute_and_its_result()
         .should_pass()
         .should_have_stdout("SHELL=overwritten\nKEY=VAL\n")
@@ -30,7 +30,7 @@ def test_file_option(tester: CliTester, option: str):
         tester.run_command(execenv)
         .with_option(option, (CURRENT_DIR / "file.env").absolute())
         .with_end_of_options()
-        .with_arguments("poetry", "run", "execenv-echo", "KEY")
+        .with_poetry_run("execenv-echo", "KEY")
         .execute_and_its_result()
         .should_pass()
         .should_have_stdout("KEY=VAL\n")
@@ -39,26 +39,27 @@ def test_file_option(tester: CliTester, option: str):
 
 @pytest.mark.parametrize("option", ["-c", "--clear"])
 def test_clear_option(tester: CliTester, option: str):
-    if (
-        platform.system() == "Windows"
-        and int(platform.python_version().split(".")[1]) <= 10
-    ):
+    system = platform.system()
+    if system == "Windows" and int(platform.python_version().split(".")[1]) <= 10:
         # Skip for Windows with Python 3.10 and earlier
         # Check python/cpython#105436 for further information
         return
 
-    path = os.environ["PATH"]
-    os.environ["TEST_VAR"] = "VAL"
-    (
+    TEST_VAR = "VAL"
+    os.environ["TEST_VAR"] = TEST_VAR
+    result = (
         tester.run_command(execenv)
         .with_option(option)
-        .with_option("-e", "PATH", path)
+        .with_option("-s")
         .with_end_of_options()
-        .with_arguments("poetry", "run", "execenv-echo", "TEST_VAR")
+        .with_arguments("echo", "EXECENV_TEST_VAR")
         .execute_and_its_result()
-        .should_pass()
-        .should_have_stdout("TEST_VAR=NOT FOUND\n")
+        .should_have_stdout_not_contains(TEST_VAR)
     )
+
+    if system != "Windows":
+        # Windows shows different behavior with different Python versions
+        result.should_pass()
 
 
 @pytest.mark.parametrize("option", ["-a", "--append-env"])
@@ -68,7 +69,7 @@ def test_append_option(tester: CliTester, option: str):
         tester.run_command(execenv)
         .with_option(option, "PATH", TEST_PATH)
         .with_end_of_options()
-        .with_arguments("poetry", "run", "execenv-echo", "PATH")
+        .with_poetry_run("execenv-echo", "PATH")
         .execute_and_its_result()
         .should_pass()
         .should_have_stdout_contains(TEST_PATH)
@@ -83,7 +84,7 @@ def test_append_separator_option(tester: CliTester):
         .with_option("--append-separator", SEPARATOR)
         .with_option("-a", "PATH", TEST_PATH)
         .with_end_of_options()
-        .with_arguments("poetry", "run", "execenv-echo", "PATH")
+        .with_poetry_run("execenv-echo", "PATH")
         .execute_and_its_result()
         .should_pass()
         .should_have_stdout_contains(SEPARATOR + TEST_PATH)
@@ -135,7 +136,7 @@ def test_verbose_option(tester: CliTester, level: int):
         .with_option("-e", "KEY", "VAL")
         .with_option(f"-{'v' * level}")
         .with_end_of_options()
-        .with_arguments("poetry", "run", "execenv-echo", "KEY")
+        .with_poetry_run("execenv-echo", "KEY")
         .execute_and_its_result()
         .should_pass()
         .should_have_stdout_contains("KEY=VAL\n")

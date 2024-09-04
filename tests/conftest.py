@@ -41,6 +41,10 @@ class CliTestResult:
         assert expected in self.result.stdout
         return self
 
+    def should_have_stdout_not_contains(self, expected: str):
+        assert expected not in self.result.stdout
+        return self
+
 
 @dataclass
 class CliTester:
@@ -92,6 +96,13 @@ class CliTester:
         Add multiple argument to the command.
         """
         self.args.extend(values)
+        return self
+
+    def with_poetry_run(self, *values: str):
+        """
+        Add `poetry run` and multiple argument to the command.
+        """
+        self.args.extend(["poetry", "run", *values])
         return self
 
     def execute_and_its_result(
