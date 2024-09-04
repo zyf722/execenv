@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "execenv"
-version = "0.1.0"
+version = "0.1.1"
 description = "Run command with a certain environment."
 license = "MIT"
 authors = ["MaxMixAlex <MaxMixAlex@protonmail.com>"]
